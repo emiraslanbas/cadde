@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+demo-qr.png
+
+# Supabase bağlantı bilgileri (örnek: .env.example)
+.env

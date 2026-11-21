@@ -12,6 +12,7 @@ type SymbolName = ComponentProps<typeof SymbolView>['name'];
 
 // Ekranın altında yüzen, yarı saydam (cam) menü
 const TAB_BAR_MARGIN = 16;
+const CREATE_BUTTON_SIZE = 46;
 
 function TabIcon({ name, color }: { name: SymbolName; color: ColorValue }) {
   return <SymbolView name={name} tintColor={color} size={24} />;
@@ -28,10 +29,14 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      // Menü zaten güvenli alanın üstünde yüzüyor; ek alt boşluk ikonları yukarı itiyordu
+      safeAreaInsets={{ bottom: 0 }}
       screenOptions={{
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.muted,
         tabBarShowLabel: false,
+        // Etiket yokken "alt alta" düzen ikonu yukarı yaslıyor; yan yana düzen ortalar
+        tabBarLabelPosition: 'beside-icon',
         tabBarBackground: GlassBackground,
         tabBarStyle: [styles.tabBar, { bottom: Math.max(insets.bottom, 12) }],
         tabBarItemStyle: styles.tabItem,
@@ -69,6 +74,8 @@ export default function TabLayout() {
         options={{
           title: 'Paylaş',
           tabBarAccessibilityLabel: 'Hikâye paylaş',
+          // Büyük + düğmesi ikon kutusuna sığsın, kesilmesin
+          tabBarIconStyle: { width: CREATE_BUTTON_SIZE, height: CREATE_BUTTON_SIZE },
           tabBarIcon: () => (
             <View style={styles.createButton}>
               <Icon name="plus" color={theme.bg} size={22} />
@@ -116,9 +123,9 @@ const styles = StyleSheet.create({
   tabItem: { height: TAB_BAR_HEIGHT, paddingVertical: 0, justifyContent: 'center' },
   androidGlass: { backgroundColor: 'rgba(24,24,30,0.94)' },
   createButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
+    width: CREATE_BUTTON_SIZE,
+    height: CREATE_BUTTON_SIZE,
+    borderRadius: CREATE_BUTTON_SIZE / 2,
     backgroundColor: theme.text,
     alignItems: 'center',
     justifyContent: 'center',

@@ -43,3 +43,6 @@ demo-qr.png
 
 # Supabase bağlantı bilgileri (örnek: .env.example)
 .env
+
+# Demo hesap bilgileri (scripts/demo-veri.mjs)
+scripts/.demo-hesaplar.json

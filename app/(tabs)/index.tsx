@@ -87,7 +87,7 @@ export default function MapScreen() {
             coordinate={{ latitude: mine.latitude, longitude: mine.longitude }}
             onPress={() => router.push(mine.stories.length > 0 ? `/story/${myId}` : '/story/new')}>
             <View style={styles.marker}>
-              {/* Son 24 saatte hikâye paylaştıysan halka pembe olur, yoksa mavi */}
+              {/* Son 24 saatte hikâye paylaştıysan halka mavi olur, yoksa gri */}
               <View style={[styles.ring, mine.stories.length === 0 && styles.meRing]}>
                 <View style={styles.avatarBorder}>
                   <Avatar uri={me.avatar_url} name={me.name} size={42} />
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: theme.primary,
   },
-  meRing: { backgroundColor: '#2F80ED' },
+  meRing: { backgroundColor: '#A0A7B4' },
   avatarBorder: { borderRadius: 23, borderWidth: 2, borderColor: '#fff' },
   avatar: {
     width: 46,

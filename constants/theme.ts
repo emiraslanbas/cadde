@@ -1,6 +1,6 @@
 export const theme = {
-  primary: '#FF4D6D',
-  primaryDark: '#C9184A',
+  primary: '#2563EB',
+  primaryDark: '#1D4ED8',
   bg: '#FFFFFF',
   surface: '#F6F6F8',
   text: '#16161A',
@@ -9,7 +9,7 @@ export const theme = {
   private: '#6C5CE7',
   public: '#00B894',
   danger: '#E5484D',
-  primarySoft: '#FFF0F3',
+  primarySoft: '#EEF4FF',
 };
 
 export const formatEventDate = (iso: string) =>

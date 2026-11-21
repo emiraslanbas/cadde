@@ -126,7 +126,7 @@ export default function ProfileScreen() {
       <Text style={styles.section}>Arkadaşlar</Text>
       {friends.length === 0 ? (
         <Text style={styles.emptyFriends}>
-          Haritada birinin hikâyesini açıp "Arkadaş ekle"ye basarak arkadaş ekleyebilirsin.
+          Haritada birinin hikâyesini açıp “Arkadaş ekle”ye basarak arkadaş ekleyebilirsin.
         </Text>
       ) : (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>

@@ -42,7 +42,7 @@ export default function MapScreenWeb() {
             ? `${others.length} kişi son 24 saatte hikâye paylaştı`
             : 'Henüz kimse hikâye paylaşmadı. İlk sen paylaş!'}
         </Text>
-        {!showOnMap && me && <Text style={styles.hidden}>Konumun gizli · Ayarlar'dan açabilirsin</Text>}
+        {!showOnMap && me && <Text style={styles.hidden}>Konumun gizli · Ayarlar’dan açabilirsin</Text>}
       </View>
 
       {others.length > 0 && (

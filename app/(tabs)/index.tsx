@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,6 +29,9 @@ export default function MapScreen() {
   const { data: users = [], refetch } = useMapUsers();
   const updateProfile = useUpdateProfile();
   const mapRef = useRef<MapView>(null);
+  // İşaretçiler harita hazır olunca çizilir; aksi hâlde Expo Go'da ilk açılışta
+  // "RNMapsMarker is not registered" hatası çıkabiliyor
+  const [mapReady, setMapReady] = useState(false);
   const showOnMap = me?.show_on_map ?? false;
 
   useRefreshOnFocus(refetch);
@@ -64,8 +67,9 @@ export default function MapScreen() {
         initialRegion={DEFAULT_REGION}
         userInterfaceStyle="dark"
         customMapStyle={DARK_MAP_STYLE}
-        showsPointsOfInterests={false}>
-        {others.map((user) => (
+        showsPointsOfInterests={false}
+        onMapReady={() => setMapReady(true)}>
+        {mapReady && others.map((user) => (
           <Marker
             key={user.id}
             coordinate={{ latitude: user.latitude, longitude: user.longitude }}
@@ -73,7 +77,7 @@ export default function MapScreen() {
             <MapPerson name={user.name} avatarUrl={user.avatar_url} hasStory label={user.name.split(' ')[0]} />
           </Marker>
         ))}
-        {mine && me && (
+        {mapReady && mine && me && (
           <Marker
             coordinate={{ latitude: mine.latitude, longitude: mine.longitude }}
             onPress={() => router.push(mine.stories.length > 0 ? `/story/${myId}` : '/story/new')}>

@@ -163,7 +163,9 @@ export default function StoryScreen() {
           <View style={styles.avatarBorder}>
             <Avatar uri={user?.avatar_url} name={user?.name ?? ''} size={31} />
           </View>
-          <Text style={styles.username}>{user?.username}</Text>
+          <Text style={styles.username} numberOfLines={1}>
+            {user?.username}
+          </Text>
           <Text style={styles.time}>{timeAgo(story.created_at)}</Text>
           {!isMe && user && (
             <Pressable
@@ -207,8 +209,9 @@ const styles = StyleSheet.create({
   barFill: { height: '100%', backgroundColor: '#fff' },
   userRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
   avatarBorder: { borderRadius: 17, borderWidth: 1.5, borderColor: '#fff' },
-  username: { color: '#fff', fontWeight: '700', marginLeft: 10, fontSize: 15 },
-  time: { color: 'rgba(255,255,255,0.75)', marginLeft: 8, fontSize: 13 },
+  // Uzun kullanıcı adı kısalır; menü ve kapat düğmeleri her zaman ekranda kalır
+  username: { color: '#fff', fontWeight: '700', marginLeft: 10, fontSize: 15, flexShrink: 1 },
+  time: { color: 'rgba(255,255,255,0.75)', marginLeft: 8, fontSize: 13, flexShrink: 0 },
   friendButton: {
     marginLeft: 10,
     paddingHorizontal: 10,

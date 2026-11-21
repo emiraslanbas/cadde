@@ -30,8 +30,9 @@ export function useBlockUser() {
       const { error } = await supabase.from('blocks').insert({ blocked_id: userId });
       if (error && error.code !== UNIQUE_VIOLATION) throw error;
     },
-    // Engellenen kişi harita, hikâye, etkinlik ve sohbetlerden hemen kaybolsun
-    onSuccess: () => client.invalidateQueries(),
+    // Engellenen kişi harita, hikâye, etkinlik ve sohbetlerden hemen kaybolsun.
+    // invalidate yetmez: artık görünmeyen kayıt hata döner ve eski veri ekranda kalır.
+    onSuccess: () => client.resetQueries(),
   });
 }
 
@@ -70,8 +71,8 @@ export function useReport() {
       // Aynı içeriği ikinci kez bildirmek hata sayılmaz
       if (error && error.code !== UNIQUE_VIOLATION) throw error;
     },
-    // Bildirilen içerik bildiren kişiye artık gösterilmez
-    onSuccess: () => client.invalidateQueries(),
+    // Bildirilen içerik bildiren kişiye artık gösterilmez (eski veri önbellekte kalmasın)
+    onSuccess: () => client.resetQueries(),
   });
 }
 

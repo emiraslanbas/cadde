@@ -27,6 +27,11 @@ const ICONS = {
   photo: { ios: 'photo.on.rectangle', android: 'photo_library', web: 'photo_library' },
   close: { ios: 'xmark', android: 'close', web: 'close' },
   logout: { ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' },
+  block: { ios: 'hand.raised.fill', android: 'block', web: 'block' },
+  help: { ios: 'questionmark.circle.fill', android: 'help', web: 'help' },
+  mail: { ios: 'envelope.fill', android: 'mail', web: 'mail' },
+  doc: { ios: 'doc.text.fill', android: 'description', web: 'description' },
+  more: { ios: 'ellipsis', android: 'more_horiz', web: 'more_horiz' },
 } satisfies Record<string, SymbolName>;
 
 export type IconName = keyof typeof ICONS;

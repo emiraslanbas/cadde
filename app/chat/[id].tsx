@@ -14,8 +14,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon } from '@/components/Icon';
+import { showActionMenu } from '@/components/ActionMenu';
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
+import { useSafetyActions } from '@/components/useSafetyActions';
 import { theme } from '@/constants/theme';
 import { useEvent, useMessages, useSendMessage } from '@/lib/api';
 import { errorMessage, formatTime } from '@/lib/format';
@@ -31,6 +33,20 @@ export default function EventChatScreen() {
   const [text, setText] = useState('');
   const listRef = useRef<FlatList<Message>>(null);
   const insets = useSafeAreaInsets();
+  const { openReport, confirmBlock } = useSafetyActions();
+
+  // Başkasının mesajına uzun basınca: bildir / engelle
+  const openMessageMenu = (message: Message) => {
+    const author = message.profile;
+    if (message.user_id === myId || !author) return;
+    showActionMenu(author.name, [
+      {
+        label: 'Mesajı bildir',
+        onPress: () => openReport({ type: 'message', id: message.id, userId: author.id, name: author.name }),
+      },
+      { label: 'Engelle', destructive: true, onPress: () => confirmBlock(author) },
+    ]);
+  };
 
   useEffect(() => {
     const t = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
@@ -84,6 +100,7 @@ export default function EventChatScreen() {
         }
         renderItem={({ item, index }) => (
           <MessageBubble
+            onLongPress={() => openMessageMenu(item)}
             message={item}
             mine={item.user_id === myId}
             showAuthor={messages[index - 1]?.user_id !== item.user_id}
@@ -107,7 +124,17 @@ export default function EventChatScreen() {
   );
 }
 
-function MessageBubble({ message, mine, showAuthor }: { message: Message; mine: boolean; showAuthor: boolean }) {
+function MessageBubble({
+  message,
+  mine,
+  showAuthor,
+  onLongPress,
+}: {
+  message: Message;
+  mine: boolean;
+  showAuthor: boolean;
+  onLongPress: () => void;
+}) {
   const author = message.profile;
 
   return (
@@ -119,12 +146,15 @@ function MessageBubble({ message, mine, showAuthor }: { message: Message; mine: 
       )}
       <View style={{ maxWidth: '75%' }}>
         {!mine && showAuthor && <Text style={styles.author}>{author?.name}</Text>}
-        <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
+        <Pressable
+          onLongPress={onLongPress}
+          delayLongPress={350}
+          style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
           <Text style={[styles.msgText, mine && { color: '#fff' }]}>{message.text}</Text>
           <Text style={[styles.time, mine && { color: 'rgba(255,255,255,0.75)' }]}>
             {formatTime(message.created_at)}
           </Text>
-        </View>
+        </Pressable>
       </View>
       {mine && showAuthor && (
         <View style={{ marginLeft: 6, alignSelf: 'flex-end' }}>

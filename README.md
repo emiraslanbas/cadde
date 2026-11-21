@@ -20,7 +20,13 @@ Telefon ve bilgisayar aynı Wi-Fi'da olmalı. Farklı ağdaysanız `npx expo sta
 - **Hikâyeler:** Alt menünün ortasındaki **+** ile kamera ya da galeriden paylaşılır, Supabase Storage'a yüklenir. Haritada 24 saat, profilde süresiz görünür.
 - **Etkinlikler:** Herkese açık etkinliğe direkt katılınır, özel etkinliğe istek gönderilir; düzenleyen istekleri etkinlik sayfasında onaylar / reddeder. Katılımcılar etkinlik sohbetinde anlık mesajlaşır.
 - **Profil:** Profil fotoğrafı, isim / kullanıcı adı düzenleme, arkadaş / etkinlik / hikâye sayıları. Arkadaş eklemek için birinin hikâyesinde "Arkadaş ekle"ye basılır.
-- **Ayarlar:** Konumu haritada gösterme, çıkış. (Hikâye görünürlüğü ve bildirim tercihleri henüz sadece arayüzde.)
+- **Ayarlar:** Konumu haritada gösterme, hikâyeleri kimlerin göreceği (Herkes / Arkadaşlar), bildirim tercihleri, engellenen kişiler, destek ve yasal bağlantılar, çıkış ve **hesap silme**.
+- **Güvenlik:** Hikâye, etkinlik ve sohbet mesajlarında "•••" / uzun basma menüsünden **Bildir** ve **Engelle**. Bildirilen içerik bildiren kişiye artık gösterilmez; aynı hikâye ya da mesaj 3 kişi tarafından bildirilirse herkesten gizlenir. Engellenen iki kişi birbirinin profilini, hikâyesini, etkinliğini ve mesajını görmez.
+- **Bildirimler:** Sohbet mesajı, katılma isteği / onayı ve "seni arkadaş ekledi" için anlık bildirim. Veritabanı tetikleyicileri Expo Push servisine gönderir (`pg_net`). Expo Go'da uzaktan bildirim çalışmaz; development build ya da mağaza sürümü ve `app.json` içinde EAS `projectId` gerekir.
+
+## Bildirimleri (şikâyetleri) takip etmek
+
+Kullanıcı bildirimleri Supabase panelinde **Table Editor → `reports`** tablosuna düşer. İnceleyince `status` alanını `resolved` yapın; gerekirse içeriği silin ya da hesabı kapatın. Apple, bildirimlere makul sürede (ideal olarak 24 saat içinde) dönülmesini bekler.
 
 ## Backend (Supabase)
 
@@ -46,10 +52,14 @@ app/story/[id].tsx       Hikâye görüntüleyici
 app/story/new.tsx        Hikâye paylaşma
 app/event/new.tsx        Etkinlik oluşturma
 app/event/[id].tsx       Etkinlik detayı
+app/report.tsx           Bildirme (şikâyet) formu
+app/blocked.tsx          Engellenen kişiler
 app/sign-in.tsx          Giriş
 app/sign-up.tsx          Kayıt
 lib/api.ts               Supabase sorguları ve işlemleri (TanStack Query)
+lib/safety.ts            Engelleme, bildirme, hesap silme
+lib/notifications.ts     Anlık bildirim kaydı ve bildirime dokununca yönlendirme
 lib/supabase.ts          Supabase bağlantısı
-store/                   Oturum ve yerel ayarlar (zustand)
+store/                   Oturum (zustand)
 supabase/                Veritabanı migration'ları ve ayarlar
 ```

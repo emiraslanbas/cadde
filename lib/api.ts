@@ -11,6 +11,7 @@ import type {
   Message,
   Profile,
   ProfileSummary,
+  ProfileUpdate,
   Story,
 } from '@/lib/types';
 import { useMyId } from '@/store/auth';
@@ -22,7 +23,8 @@ export const queryClient = new QueryClient({
 const STORY_LIFETIME_MS = 24 * 60 * 60 * 1000;
 const storiesSince = () => new Date(Date.now() - STORY_LIFETIME_MS).toISOString();
 
-const PROFILE_SUMMARY = 'id, name, username, avatar_url';
+export const PROFILE_SUMMARY = 'id, name, username, avatar_url';
+const PROFILE_COLUMNS = `${PROFILE_SUMMARY}, show_on_map, story_audience, notify_invites, notify_messages, notify_friends`;
 
 // Sekmeye geri dönülünce veriyi tazele (React Native'de pencere odağı olayı yok)
 export function useRefreshOnFocus(refetch: () => unknown) {
@@ -45,7 +47,7 @@ export function useProfile(userId: string) {
     queryKey: ['profile', userId],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      const { data, error } = await supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', userId).single();
       if (error) throw error;
       return data as Profile;
     },
@@ -59,12 +61,23 @@ export function useMyProfile() {
 export function useUpdateProfile() {
   const myId = useMyId();
   const client = useQueryClient();
+  const key = ['profile', myId];
   return useMutation({
-    mutationFn: async (patch: Partial<Omit<Profile, 'id'>>) => {
+    mutationFn: async (patch: ProfileUpdate) => {
       const { error } = await supabase.from('profiles').update(patch).eq('id', myId);
       if (error) throw error;
     },
-    onSuccess: () => {
+    // Ayar anahtarları beklemeden yeni değeri göstersin; hata olursa geri alınır
+    onMutate: async (patch) => {
+      await client.cancelQueries({ queryKey: key });
+      const previous = client.getQueryData<Profile>(key);
+      if (previous) client.setQueryData<Profile>(key, { ...previous, ...patch });
+      return { previous };
+    },
+    onError: (_error, _patch, context) => {
+      if (context?.previous) client.setQueryData(key, context.previous);
+    },
+    onSettled: () => {
       client.invalidateQueries({ queryKey: ['profile', myId] });
       client.invalidateQueries({ queryKey: ['map'] });
     },
@@ -91,21 +104,16 @@ export async function uploadImage(userId: string, base64: string, mimeType = 'im
 
 // ───────────────────────── Harita ve hikâyeler ─────────────────────────
 
-// Konumu açık ve son 24 saatte hikâye paylaşmış kişiler (+ kendin, hikâyen olmasa da)
+// Konumu açık ve son 24 saatte sana görünür hikâye paylaşmış kişiler (+ kendin).
+// Görünürlük (arkadaşlar / engel / bildirim) veritabanındaki map_users() içinde uygulanır.
 export function useMapUsers() {
-  const myId = useMyId();
   return useQuery({
     queryKey: ['map'],
     refetchInterval: 30_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`${PROFILE_SUMMARY}, latitude, longitude, stories(*)`)
-        .not('latitude', 'is', null)
-        .gte('stories.created_at', storiesSince())
-        .order('created_at', { referencedTable: 'stories', ascending: true });
+      const { data, error } = await supabase.rpc('map_users');
       if (error) throw error;
-      return (data as MapUser[]).filter((u) => u.stories.length > 0 || u.id === myId);
+      return data as MapUser[];
     },
   });
 }
@@ -141,6 +149,26 @@ export function useCreateStory() {
     },
   });
 }
+
+export function useDeleteStory() {
+  const myId = useMyId();
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (story: Pick<Story, 'id' | 'image_url'>) => {
+      const { error } = await supabase.from('stories').delete().eq('id', story.id);
+      if (error) throw error;
+      const path = storagePathFromUrl(story.image_url);
+      if (path) await supabase.storage.from('media').remove([path]);
+    },
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ['stories', myId] });
+      client.invalidateQueries({ queryKey: ['map'] });
+    },
+  });
+}
+
+// https://…/storage/v1/object/public/media/<kullanıcı>/<dosya> → <kullanıcı>/<dosya>
+export const storagePathFromUrl = (url: string) => url.split('/object/public/media/')[1] ?? null;
 
 // ───────────────────────── Arkadaşlar ─────────────────────────
 
@@ -226,6 +254,17 @@ export function useCreateEvent() {
       cover_url: string;
     }) => {
       const { error } = await supabase.from('events').insert(input);
+      if (error) throw error;
+    },
+    onSuccess: () => client.invalidateQueries({ queryKey: ['events'] }),
+  });
+}
+
+export function useDeleteEvent() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async (eventId: string) => {
+      const { error } = await supabase.from('events').delete().eq('id', eventId);
       if (error) throw error;
     },
     onSuccess: () => client.invalidateQueries({ queryKey: ['events'] }),

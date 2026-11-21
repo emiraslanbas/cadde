@@ -1,14 +1,17 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { showActionMenu } from '@/components/ActionMenu';
 import { Avatar } from '@/components/Avatar';
+import { Icon } from '@/components/Icon';
+import { useSafetyActions } from '@/components/useSafetyActions';
 import { theme } from '@/constants/theme';
-import { useFriends, useProfile, useToggleFriend, useUserStories } from '@/lib/api';
-import { timeAgo } from '@/lib/format';
+import { useDeleteStory, useFriends, useProfile, useToggleFriend, useUserStories } from '@/lib/api';
+import { errorMessage, timeAgo } from '@/lib/format';
 import { useMyId } from '@/store/auth';
 
 const STORY_DURATION = 5000;
@@ -21,9 +24,12 @@ export default function StoryScreen() {
   const { data: stories = [], isLoading } = useUserStories(id);
   const { data: friends = [] } = useFriends();
   const toggleFriend = useToggleFriend();
+  const deleteStory = useDeleteStory();
+  const { openReport, confirmBlock } = useSafetyActions();
   const insets = useSafeAreaInsets();
   const [index, setIndex] = useState(Number(start) || 0);
-  const progress = useRef(new Animated.Value(0)).current;
+  // Render sırasında ref okumamak için animasyon değeri state'te tutulur
+  const [progress] = useState(() => new Animated.Value(0));
 
   const isFriend = friends.some((f) => f.id === id);
   const hasStories = stories.length > 0;
@@ -40,10 +46,11 @@ export default function StoryScreen() {
     }
   };
 
-  const startProgress = () => {
+  // from: kaldığı yer (0-1); menü kapanınca hikâye kaldığı yerden devam eder
+  const startProgress = (from = 0) => {
     Animated.timing(progress, {
       toValue: 1,
-      duration: STORY_DURATION,
+      duration: STORY_DURATION * (1 - from),
       easing: Easing.linear,
       useNativeDriver: false,
     }).start(({ finished }) => finished && next());
@@ -76,6 +83,47 @@ export default function StoryScreen() {
   }
 
   const story = stories[Math.min(index, stories.length - 1)];
+
+  const openMenu = () => {
+    let pausedAt = 0;
+    progress.stopAnimation((value) => {
+      pausedAt = value;
+    });
+    const resume = () => startProgress(pausedAt);
+    if (isMe) {
+      showActionMenu(undefined, [
+        {
+          label: 'Hikâyeyi sil',
+          destructive: true,
+          onPress: () =>
+            Alert.alert('Hikâyeyi sil', 'Bu hikâye kalıcı olarak silinecek.', [
+              { text: 'Vazgeç', style: 'cancel', onPress: resume },
+              {
+                text: 'Sil',
+                style: 'destructive',
+                onPress: () =>
+                  deleteStory.mutate(story, {
+                    onSuccess: () => (stories.length <= 1 ? router.back() : setIndex(Math.max(0, index - 1))),
+                    onError: (error) => Alert.alert('Silinemedi', errorMessage(error)),
+                  }),
+              },
+            ]),
+        },
+      ], resume);
+      return;
+    }
+    if (!user) return resume();
+    showActionMenu(user.name, [
+      {
+        label: 'Hikâyeyi bildir',
+        onPress: () => {
+          router.back();
+          openReport({ type: 'story', id: story.id, userId: user.id, name: user.name });
+        },
+      },
+      { label: 'Engelle', destructive: true, onPress: () => confirmBlock(user, () => router.back()) },
+    ], resume);
+  };
 
   return (
     <View style={styles.container}>
@@ -125,7 +173,15 @@ export default function StoryScreen() {
               <Text style={styles.friendText}>{isFriend ? 'Arkadaşsınız' : 'Arkadaş ekle'}</Text>
             </Pressable>
           )}
-          <Pressable onPress={() => router.back()} hitSlop={16} style={styles.close}>
+          <Pressable
+            onPress={openMenu}
+            hitSlop={12}
+            style={styles.more}
+            accessibilityLabel="Seçenekler"
+            accessibilityRole="button">
+            <Icon name="more" color="#fff" size={20} />
+          </Pressable>
+          <Pressable onPress={() => router.back()} hitSlop={16} style={styles.closeButton} accessibilityLabel="Kapat">
             <Text style={styles.closeText}>✕</Text>
           </Pressable>
         </View>
@@ -162,7 +218,8 @@ const styles = StyleSheet.create({
   },
   friendButtonActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
   friendText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  close: { marginLeft: 'auto', padding: 4 },
+  more: { marginLeft: 'auto', padding: 6 },
+  closeButton: { marginLeft: 8, padding: 4 },
   closeText: { color: '#fff', fontSize: 22, fontWeight: '600' },
   bottom: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: 20 },
   caption: { color: '#fff', fontSize: 20, fontWeight: '700' },

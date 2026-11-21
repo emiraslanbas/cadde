@@ -1,3 +1,4 @@
+import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native';
 
@@ -9,6 +10,7 @@ import {
   USERNAME_HINT,
   USERNAME_PATTERN,
 } from '@/components/Form';
+import { LINKS } from '@/constants/links';
 import { theme } from '@/constants/theme';
 import { isUsernameAvailable } from '@/lib/api';
 import { errorMessage } from '@/lib/format';
@@ -97,6 +99,17 @@ export default function SignUpScreen() {
         </Field>
 
         <PrimaryButton label="Hesap oluştur" onPress={signUp} loading={loading} />
+        <Text style={styles.terms}>
+          Hesap oluşturarak{' '}
+          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(LINKS.terms)}>
+            Kullanım Koşulları
+          </Text>
+          {"'nı ve "}
+          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(LINKS.privacy)}>
+            Gizlilik Politikası
+          </Text>
+          {"'nı kabul etmiş olursun. Cadde'de taciz, nefret söylemi ve uygunsuz içeriğe yer yok."}
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -106,4 +119,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   content: { padding: 20, gap: 18 },
   hint: { fontSize: 12, color: theme.muted },
+  terms: { fontSize: 12, color: theme.muted, lineHeight: 18, textAlign: 'center' },
+  link: { color: theme.primary, fontWeight: '700' },
 });

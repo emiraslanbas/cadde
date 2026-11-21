@@ -8,6 +8,8 @@ export const theme = {
   border: '#E6E6EB',
   private: '#6C5CE7',
   public: '#00B894',
+  danger: '#E5484D',
+  primarySoft: '#FFF0F3',
 };
 
 export const formatEventDate = (iso: string) =>

@@ -2,10 +2,19 @@ import { Image } from 'expo-image';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { showActionMenu } from '@/components/ActionMenu';
 import { Avatar } from '@/components/Avatar';
 import { Icon, IconName } from '@/components/Icon';
+import { useSafetyActions } from '@/components/useSafetyActions';
 import { formatEventDate, theme } from '@/constants/theme';
-import { useApproveMember, useEvent, useJoinEvent, useRefreshOnFocus, useRemoveMember } from '@/lib/api';
+import {
+  useApproveMember,
+  useDeleteEvent,
+  useEvent,
+  useJoinEvent,
+  useRefreshOnFocus,
+  useRemoveMember,
+} from '@/lib/api';
 import { errorMessage } from '@/lib/format';
 import { useMyId } from '@/store/auth';
 
@@ -18,6 +27,8 @@ export default function EventDetailScreen() {
   const join = useJoinEvent();
   const remove = useRemoveMember();
   const approve = useApproveMember();
+  const deleteEvent = useDeleteEvent();
+  const { openReport, confirmBlock } = useSafetyActions();
 
   useRefreshOnFocus(refetch);
 
@@ -38,8 +49,9 @@ export default function EventDetailScreen() {
   const myStatus = event.members.find((m) => m.user_id === myId)?.status;
   const attending = myStatus === 'joined';
   const requested = myStatus === 'requested';
-  const joined = event.members.filter((m) => m.status === 'joined');
-  const requests = event.members.filter((m) => m.status === 'requested');
+  // Engellediğin / seni engelleyen kişilerin profili gelmez; listede gösterilmez
+  const joined = event.members.filter((m) => m.status === 'joined' && m.profile);
+  const requests = event.members.filter((m) => m.status === 'requested' && m.profile);
   const busy = join.isPending || remove.isPending;
 
   const leave = () =>
@@ -52,9 +64,49 @@ export default function EventDetailScreen() {
       },
     ]);
 
+  const host = event.host;
+  const openMenu = () => {
+    if (isHost) {
+      showActionMenu(undefined, [
+        {
+          label: 'Etkinliği sil',
+          destructive: true,
+          onPress: () =>
+            Alert.alert('Etkinliği sil', 'Etkinlik ve sohbeti herkes için kalıcı olarak silinecek.', [
+              { text: 'Vazgeç', style: 'cancel' },
+              {
+                text: 'Sil',
+                style: 'destructive',
+                onPress: () => deleteEvent.mutate(event.id, { onSuccess: () => router.back(), onError }),
+              },
+            ]),
+        },
+      ]);
+      return;
+    }
+    showActionMenu(event.title, [
+      {
+        label: 'Etkinliği bildir',
+        onPress: () => openReport({ type: 'event', id: event.id, userId: event.host_id, name: host?.name }),
+      },
+      ...(host
+        ? [{ label: `${host.name} kişisini engelle`, destructive: true, onPress: () => confirmBlock(host, () => router.back()) }]
+        : []),
+    ]);
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Stack.Screen options={{ title: event.title }} />
+      <Stack.Screen
+        options={{
+          title: event.title,
+          headerRight: () => (
+            <Pressable onPress={openMenu} hitSlop={12} accessibilityLabel="Seçenekler" accessibilityRole="button">
+              <Icon name="more" color={theme.text} size={20} />
+            </Pressable>
+          ),
+        }}
+      />
       {event.cover_url && <Image source={event.cover_url} style={styles.cover} />}
       <View style={styles.body}>
         <InfoRow

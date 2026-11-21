@@ -1,12 +1,19 @@
+export type Audience = 'everyone' | 'friends';
+
+// Konum kolonları güvenlik için doğrudan okunamaz; harita verisi map_users() fonksiyonundan gelir
 export type Profile = {
   id: string;
   name: string;
   username: string;
   avatar_url: string | null;
-  latitude: number | null;
-  longitude: number | null;
   show_on_map: boolean;
+  story_audience: Audience;
+  notify_invites: boolean;
+  notify_messages: boolean;
+  notify_friends: boolean;
 };
+
+export type ProfileUpdate = Partial<Omit<Profile, 'id'>> & { latitude?: number; longitude?: number };
 
 export type ProfileSummary = Pick<Profile, 'id' | 'name' | 'username' | 'avatar_url'>;
 
@@ -54,3 +61,6 @@ export type Message = {
   created_at: string;
   profile: ProfileSummary | null;
 };
+
+export type ReportTarget = 'user' | 'story' | 'event' | 'message';
+export type ReportReason = 'spam' | 'harassment' | 'inappropriate' | 'fake' | 'other';

@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: theme.border,
   },
-  optionActive: { borderColor: theme.primary, backgroundColor: '#FFF0F3' },
+  optionActive: { borderColor: theme.primary, backgroundColor: theme.primarySoft },
   optionTitle: { fontSize: 15, fontWeight: '700', color: theme.text },
   optionSubtitle: { fontSize: 12, color: theme.muted, marginTop: 4 },
 });

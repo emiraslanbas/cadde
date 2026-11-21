@@ -1,92 +1,180 @@
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
-import { ReactNode } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { ReactNode, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+} from 'react-native';
 
-import { Icon, IconName } from '@/components/Icon';
 import { Avatar } from '@/components/Avatar';
+import { Icon, IconName } from '@/components/Icon';
+import { LINKS } from '@/constants/links';
 import { theme } from '@/constants/theme';
 import { useMyProfile, useUpdateProfile } from '@/lib/api';
 import { errorMessage } from '@/lib/format';
+import { registerForPush, unregisterPushToken } from '@/lib/notifications';
+import { deleteMyAccount } from '@/lib/safety';
 import { supabase } from '@/lib/supabase';
-import { Audience, useSettings } from '@/store/settings';
+import type { Audience, ProfileUpdate } from '@/lib/types';
+import { useMyId } from '@/store/auth';
+
+type NotifyKey = 'notify_invites' | 'notify_messages' | 'notify_friends';
 
 export default function SettingsScreen() {
-  const settings = useSettings();
+  const myId = useMyId();
   const { data: me } = useMyProfile();
   const updateProfile = useUpdateProfile();
+  const [deleting, setDeleting] = useState(false);
+
+  const save = (patch: ProfileUpdate) =>
+    updateProfile.mutate(patch, { onError: (error) => Alert.alert('Kaydedilemedi', errorMessage(error)) });
+
+  // Bir bildirim türü açılınca telefondan bildirim izni istenir
+  const toggleNotification = async (key: NotifyKey, value: boolean) => {
+    save({ [key]: value });
+    if (!value) return;
+    const result = await registerForPush(true).catch(() => 'unsupported' as const);
+    if (result === 'denied') {
+      Alert.alert(
+        'Bildirimler kapalı',
+        'Cadde bildirimlerini almak için telefonunun ayarlarından bildirim iznini aç.',
+        [
+          { text: 'Vazgeç', style: 'cancel' },
+          { text: 'Ayarları aç', onPress: () => Linking.openSettings() },
+        ],
+      );
+    }
+  };
 
   const signOut = () =>
     Alert.alert('Çıkış yap', 'Hesabından çıkış yapmak istediğine emin misin?', [
       { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Çıkış yap', style: 'destructive', onPress: () => supabase.auth.signOut() },
+      {
+        text: 'Çıkış yap',
+        style: 'destructive',
+        onPress: async () => {
+          await unregisterPushToken().catch(() => {});
+          await supabase.auth.signOut();
+        },
+      },
     ]);
 
+  const runDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteMyAccount(myId);
+    } catch (error) {
+      setDeleting(false);
+      Alert.alert('Hesap silinemedi', `${errorMessage(error)}\n\nTekrar dene ya da bize yaz.`);
+    }
+  };
+
+  const confirmDelete = () =>
+    Alert.alert(
+      'Hesabını sil',
+      'Profilin, hikâyelerin, fotoğrafların, düzenlediğin etkinlikler, mesajların ve arkadaşlıkların kalıcı olarak silinir. Bu işlem geri alınamaz.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Devam et',
+          style: 'destructive',
+          onPress: () =>
+            Alert.alert('Emin misin?', 'Hesabın ve tüm verilerin şimdi silinecek.', [
+              { text: 'Vazgeç', style: 'cancel' },
+              { text: 'Hesabımı sil', style: 'destructive', onPress: runDelete },
+            ]),
+        },
+      ],
+    );
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
-      <Pressable style={styles.profileCard} onPress={() => router.push('/profile/edit')}>
-        <Avatar uri={me?.avatar_url} name={me?.name ?? ''} size={52} />
-        <View style={{ flex: 1 }}>
-          <Text style={styles.profileName}>{me?.name}</Text>
-          <Text style={styles.profileUsername}>@{me?.username} · Profili düzenle</Text>
-        </View>
-        <Icon name="chevron" color={theme.muted} size={14} />
-      </Pressable>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+        <Pressable style={styles.profileCard} onPress={() => router.push('/profile/edit')}>
+          <Avatar uri={me?.avatar_url} name={me?.name ?? ''} size={52} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.profileName}>{me?.name}</Text>
+            <Text style={styles.profileUsername}>@{me?.username} · Profili düzenle</Text>
+          </View>
+          <Icon name="chevron" color={theme.muted} size={14} />
+        </Pressable>
 
-      <Section title="Gizlilik">
-        <ToggleRow
-          icon="location"
-          label="Konumumu haritada göster"
-          value={me?.show_on_map ?? false}
-          onChange={(show_on_map) =>
-            updateProfile.mutate(
-              { show_on_map },
-              { onError: (error) => Alert.alert('Kaydedilemedi', errorMessage(error)) },
-            )
-          }
-        />
-        <Row icon="eye" label="Hikâyelerimi kimler görebilir?">
-          <Segmented
-            value={settings.storyAudience}
-            onChange={(storyAudience) => settings.set({ storyAudience })}
+        <Section title="Gizlilik">
+          <ToggleRow
+            icon="location"
+            label="Konumumu haritada göster"
+            value={me?.show_on_map ?? false}
+            onChange={(show_on_map) => save({ show_on_map })}
           />
-        </Row>
-      </Section>
+          <Row icon="eye" label="Hikâyelerimi kimler görebilir?">
+            <Segmented
+              value={me?.story_audience ?? 'everyone'}
+              onChange={(story_audience) => save({ story_audience })}
+            />
+          </Row>
+          <LinkRow icon="block" label="Engellenen kişiler" onPress={() => router.push('/blocked')} last />
+        </Section>
+        <Text style={styles.footnote}>
+          “Arkadaşlar” seçiliyse hikâyelerini ve haritadaki yerini yalnızca arkadaş olarak eklediğin kişiler görür.
+        </Text>
 
-      <Section title="Bildirimler">
-        <ToggleRow
-          icon="calendar"
-          label="Etkinlik davetleri ve istekler"
-          value={settings.notifyInvites}
-          onChange={(notifyInvites) => settings.set({ notifyInvites })}
-        />
-        <ToggleRow
-          icon="message"
-          label="Sohbet mesajları"
-          value={settings.notifyMessages}
-          onChange={(notifyMessages) => settings.set({ notifyMessages })}
-        />
-        <ToggleRow
-          icon="friends"
-          label="Arkadaşlık istekleri"
-          value={settings.notifyFriends}
-          onChange={(notifyFriends) => settings.set({ notifyFriends })}
-          last
-        />
-      </Section>
+        <Section title="Bildirimler">
+          <ToggleRow
+            icon="calendar"
+            label="Etkinlik istekleri ve onaylar"
+            value={me?.notify_invites ?? true}
+            onChange={(v) => toggleNotification('notify_invites', v)}
+          />
+          <ToggleRow
+            icon="message"
+            label="Sohbet mesajları"
+            value={me?.notify_messages ?? true}
+            onChange={(v) => toggleNotification('notify_messages', v)}
+          />
+          <ToggleRow
+            icon="friends"
+            label="Biri beni arkadaş eklediğinde"
+            value={me?.notify_friends ?? true}
+            onChange={(v) => toggleNotification('notify_friends', v)}
+            last
+          />
+        </Section>
 
-      <Section title="Hakkında">
-        <Row icon="info" label="Sürüm" last>
-          <Text style={styles.value}>1.0.0</Text>
-        </Row>
-      </Section>
+        <Section title="Destek">
+          <LinkRow icon="help" label="Yardım ve iletişim" onPress={() => WebBrowser.openBrowserAsync(LINKS.support)} />
+          <LinkRow icon="mail" label="Bize e-posta gönder" onPress={() => Linking.openURL(LINKS.supportEmail)} />
+          <LinkRow icon="lock" label="Gizlilik politikası" onPress={() => WebBrowser.openBrowserAsync(LINKS.privacy)} />
+          <LinkRow icon="doc" label="Kullanım koşulları" onPress={() => WebBrowser.openBrowserAsync(LINKS.terms)} />
+          <Row icon="info" label="Sürüm" last>
+            <Text style={styles.value}>{Constants.expoConfig?.version ?? '1.0.0'}</Text>
+          </Row>
+        </Section>
 
-      <Pressable
-        style={styles.logout}
-        onPress={signOut}>
-        <Icon name="logout" color="#E5484D" size={17} />
-        <Text style={styles.logoutText}>Çıkış yap</Text>
-      </Pressable>
-    </ScrollView>
+        <Pressable style={styles.logout} onPress={signOut}>
+          <Icon name="logout" color={theme.danger} size={17} />
+          <Text style={styles.logoutText}>Çıkış yap</Text>
+        </Pressable>
+
+        <Pressable style={styles.deleteButton} onPress={confirmDelete} hitSlop={8}>
+          <Text style={styles.deleteText}>Hesabımı sil</Text>
+        </Pressable>
+      </ScrollView>
+
+      {deleting && (
+        <View style={styles.overlay}>
+          <ActivityIndicator color="#fff" size="large" />
+          <Text style={styles.overlayText}>Hesabın siliniyor…</Text>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -108,6 +196,16 @@ function Row(props: { icon: IconName; label: string; children?: ReactNode; last?
       <Text style={styles.label}>{props.label}</Text>
       {props.children}
     </View>
+  );
+}
+
+function LinkRow(props: { icon: IconName; label: string; onPress: () => void; last?: boolean }) {
+  return (
+    <Pressable onPress={props.onPress} accessibilityRole="button">
+      <Row icon={props.icon} label={props.label} last={props.last}>
+        <Icon name="chevron" color={theme.muted} size={13} />
+      </Row>
+    </Pressable>
   );
 }
 
@@ -137,6 +235,8 @@ function Segmented({ value, onChange }: { value: Audience; onChange: (v: Audienc
         <Pressable
           key={a.key}
           onPress={() => onChange(a.key)}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: value === a.key }}
           style={[styles.segmentItem, value === a.key && styles.segmentActive]}>
           <Text style={[styles.segmentText, value === a.key && { color: theme.text }]}>{a.label}</Text>
         </Pressable>
@@ -164,6 +264,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     marginBottom: 8,
   },
+  footnote: { fontSize: 12, color: theme.muted, lineHeight: 17, marginTop: 8, marginHorizontal: 6 },
   card: { backgroundColor: '#fff', borderRadius: 18, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border },
@@ -171,7 +272,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 9,
-    backgroundColor: '#FFF0F3',
+    backgroundColor: theme.primarySoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -198,5 +299,19 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: '#fff',
   },
-  logoutText: { fontSize: 16, fontWeight: '700', color: '#E5484D' },
+  logoutText: { fontSize: 16, fontWeight: '700', color: theme.danger },
+  deleteButton: { alignSelf: 'center', marginTop: 18, padding: 6 },
+  deleteText: { fontSize: 14, fontWeight: '600', color: theme.muted, textDecorationLine: 'underline' },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  overlayText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });

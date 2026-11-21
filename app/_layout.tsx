@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { queryClient } from '@/lib/api';
+import { usePushNotifications } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/store/auth';
 
@@ -62,6 +63,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const signedIn = useAuth((s) => !!s.session);
+  usePushNotifications(signedIn);
 
   return (
     <ThemeProvider value={DefaultTheme}>
@@ -77,6 +79,8 @@ function RootLayoutNav() {
           <Stack.Screen name="event/[id]" options={{ title: 'Etkinlik', headerBackTitle: 'Geri' }} />
           <Stack.Screen name="chat/[id]" options={{ title: 'Sohbet', headerBackTitle: 'Geri' }} />
           <Stack.Screen name="profile/edit" options={{ title: 'Profili düzenle', presentation: 'modal' }} />
+          <Stack.Screen name="report" options={{ title: 'Bildir', presentation: 'modal' }} />
+          <Stack.Screen name="blocked" options={{ title: 'Engellenen kişiler', headerBackTitle: 'Geri' }} />
         </Stack.Protected>
 
         <Stack.Protected guard={!signedIn}>

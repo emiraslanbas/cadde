@@ -9,7 +9,10 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.younglion.cadde"
+      "bundleIdentifier": "com.younglion.cadde",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,16 +40,34 @@
         }
       ],
       "expo-image",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Konumunu haritada arkadaşlarına göstermek için kullanıyoruz. Konumun yaklaşık 100 metreye yuvarlanır; Ayarlar’dan istediğin zaman kapatabilirsin.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false
+        }
+      ],
       "@react-native-community/datetimepicker",
       [
         "expo-image-picker",
         {
-          "photosPermission": "Profil fotoğrafı seçmek için fotoğraflarına erişmemiz gerekiyor."
+          "photosPermission": "Profil fotoğrafı ve hikâye için galerinden fotoğraf seçebilmen için erişim gerekiyor.",
+          "cameraPermission": "Hikâye fotoğrafı çekebilmen için kameraya erişim gerekiyor.",
+          "microphonePermission": false
         }
       ],
       "expo-font",
       "expo-status-bar",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "color": "#2563EB",
+          "defaultChannel": "default"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

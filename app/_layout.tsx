@@ -1,10 +1,12 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { theme } from '@/constants/theme';
 import { queryClient } from '@/lib/api';
 import { usePushNotifications } from '@/lib/notifications';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +19,18 @@ export {
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',
+};
+
+const NAV_THEME: Theme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: theme.primary,
+    background: theme.bg,
+    card: theme.bg,
+    text: theme.text,
+    border: theme.border,
+  },
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -66,8 +80,15 @@ function RootLayoutNav() {
   usePushNotifications(signedIn);
 
   return (
-    <ThemeProvider value={DefaultTheme}>
-      <Stack>
+    <ThemeProvider value={NAV_THEME}>
+      <StatusBar style="light" />
+      <Stack
+        screenOptions={{
+          headerStyle: { backgroundColor: theme.bg },
+          headerTintColor: theme.text,
+          headerShadowVisible: false,
+          contentStyle: { backgroundColor: theme.bg },
+        }}>
         <Stack.Protected guard={signedIn}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="story/new" options={{ headerShown: false, presentation: 'fullScreenModal' }} />

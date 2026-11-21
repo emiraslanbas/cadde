@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "caddeapp",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.younglion.cadde",
@@ -36,7 +36,7 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#0A0A0D"
         }
       ],
       "expo-image",
@@ -64,7 +64,7 @@
       [
         "expo-notifications",
         {
-          "color": "#2563EB",
+          "color": "#3B82F6",
           "defaultChannel": "default"
         }
       ]

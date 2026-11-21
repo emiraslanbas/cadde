@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, Text } from 'react-native';
 
 import { theme } from '@/constants/theme';
 
@@ -17,13 +18,13 @@ export function Avatar({ uri, name, size }: { uri: string | null | undefined; na
     .join('');
 
   return (
-    <View style={[shape, styles.fallback]}>
+    <LinearGradient colors={[theme.primaryDark, theme.glow[2]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[shape, styles.fallback]}>
       <Text style={[styles.initials, { fontSize: size * 0.36 }]}>{initials || '?'}</Text>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  fallback: { backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
-  initials: { color: '#fff', fontWeight: '800' },
+  fallback: { alignItems: 'center', justifyContent: 'center' },
+  initials: { color: theme.onPrimary, fontWeight: '800' },
 });

@@ -1,30 +1,52 @@
+import { BlurView } from 'expo-blur';
 import { SymbolView } from 'expo-symbols';
 import { router, Tabs } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { ComponentProps } from 'react';
+import { ColorValue, Platform, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Icon } from '@/components/Icon';
+import { TAB_BAR_HEIGHT, theme } from '@/constants/theme';
 
-import { theme } from '@/constants/theme';
+type SymbolName = ComponentProps<typeof SymbolView>['name'];
+
+// Ekranın altında yüzen, yarı saydam (cam) menü
+const TAB_BAR_MARGIN = 16;
+
+function TabIcon({ name, color }: { name: SymbolName; color: ColorValue }) {
+  return <SymbolView name={name} tintColor={color} size={24} />;
+}
+
+function GlassBackground() {
+  // Android'de bulanıklaştırma pahalı ve tutarsız; yarı saydam koyu zemin yeterli
+  if (Platform.OS === 'android') return <View style={[StyleSheet.absoluteFill, styles.androidGlass]} />;
+  return <BlurView tint="systemChromeMaterialDark" intensity={80} style={StyleSheet.absoluteFill} />;
+}
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.primary,
+        tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.muted,
+        tabBarShowLabel: false,
+        tabBarBackground: GlassBackground,
+        tabBarStyle: [styles.tabBar, { bottom: Math.max(insets.bottom, 12) }],
+        tabBarItemStyle: styles.tabItem,
+        headerStyle: { backgroundColor: theme.bg },
+        headerTintColor: theme.text,
+        headerShadowVisible: false,
+        headerTitleStyle: { fontWeight: '800' },
+        sceneStyle: { backgroundColor: theme.bg },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Harita',
           headerShown: false,
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'map.fill', android: 'map', web: 'map' }}
-              tintColor={color}
-              size={26}
-            />
-          ),
+          tabBarIcon: ({ color }) => <TabIcon name={{ ios: 'map.fill', android: 'map', web: 'map' }} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -32,11 +54,7 @@ export default function TabLayout() {
         options={{
           title: 'Etkinlikler',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'calendar', android: 'event', web: 'event' }}
-              tintColor={color}
-              size={26}
-            />
+            <TabIcon name={{ ios: 'calendar', android: 'event', web: 'event' }} color={color} />
           ),
         }}
       />
@@ -50,11 +68,10 @@ export default function TabLayout() {
         }}
         options={{
           title: 'Paylaş',
-          tabBarLabel: () => null,
           tabBarAccessibilityLabel: 'Hikâye paylaş',
           tabBarIcon: () => (
             <View style={styles.createButton}>
-              <Icon name="plus" color="#fff" size={24} />
+              <Icon name="plus" color={theme.bg} size={22} />
             </View>
           ),
         }}
@@ -64,11 +81,7 @@ export default function TabLayout() {
         options={{
           title: 'Profil',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'person.crop.circle', android: 'person', web: 'person' }}
-              tintColor={color}
-              size={26}
-            />
+            <TabIcon name={{ ios: 'person.crop.circle', android: 'person', web: 'person' }} color={color} />
           ),
         }}
       />
@@ -77,11 +90,7 @@ export default function TabLayout() {
         options={{
           title: 'Ayarlar',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'gearshape.fill', android: 'settings', web: 'settings' }}
-              tintColor={color}
-              size={26}
-            />
+            <TabIcon name={{ ios: 'gearshape.fill', android: 'settings', web: 'settings' }} color={color} />
           ),
         }}
       />
@@ -90,18 +99,28 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  tabBar: {
+    position: 'absolute',
+    left: TAB_BAR_MARGIN,
+    right: TAB_BAR_MARGIN,
+    height: TAB_BAR_HEIGHT,
+    paddingBottom: 0,
+    borderRadius: TAB_BAR_HEIGHT / 2,
+    borderTopWidth: 0,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.glassBorder,
+    backgroundColor: 'transparent',
+    overflow: 'hidden',
+    elevation: 0,
+  },
+  tabItem: { height: TAB_BAR_HEIGHT, paddingVertical: 0, justifyContent: 'center' },
+  androidGlass: { backgroundColor: 'rgba(24,24,30,0.94)' },
   createButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    marginTop: 14,
-    backgroundColor: theme.primary,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: theme.text,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: theme.primaryDark,
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
   },
 });

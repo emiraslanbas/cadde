@@ -131,7 +131,7 @@ function SourceButton({ icon, label, onPress }: { icon: IconName; label: string;
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#111' },
+  container: { flex: 1, backgroundColor: theme.bg },
   close: {
     left: 16,
     width: 40,

@@ -6,7 +6,8 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View
 
 import { Avatar } from '@/components/Avatar';
 import { Icon } from '@/components/Icon';
-import { theme } from '@/constants/theme';
+import { StoryRing } from '@/components/StoryRing';
+import { TAB_BAR_CLEARANCE, theme } from '@/constants/theme';
 import {
   uploadImage,
   useEvents,
@@ -16,7 +17,7 @@ import {
   useUpdateProfile,
   useUserStories,
 } from '@/lib/api';
-import { errorMessage, timeAgo } from '@/lib/format';
+import { errorMessage, minutesSince, timeAgo } from '@/lib/format';
 import { useMyId } from '@/store/auth';
 
 export default function ProfileScreen() {
@@ -68,14 +69,16 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Pressable onPress={pickAvatar} style={styles.avatarWrap} disabled={uploading}>
-        <Avatar uri={me.avatar_url} name={me.name} size={104} />
+        <StoryRing size={104} active={stories.some((s) => minutesSince(s.created_at) < MINUTES_PER_DAY)}>
+          <Avatar uri={me.avatar_url} name={me.name} size={104} />
+        </StoryRing>
         {uploading && (
           <View style={styles.uploading}>
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={theme.text} />
           </View>
         )}
         <View style={styles.cameraBadge}>
-          <Icon name="camera" color="#fff" size={15} />
+          <Icon name="camera" color={theme.onPrimary} size={15} />
         </View>
       </Pressable>
 
@@ -132,9 +135,9 @@ export default function ProfileScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
           {friends.map((f) => (
             <View key={f.id} style={styles.friend}>
-              <View style={styles.friendRing}>
+              <StoryRing size={52}>
                 <Avatar uri={f.avatar_url} name={f.name} size={52} />
-              </View>
+              </StoryRing>
               <Text style={styles.friendName} numberOfLines={1}>
                 {f.name}
               </Text>
@@ -146,6 +149,8 @@ export default function ProfileScreen() {
   );
 }
 
+const MINUTES_PER_DAY = 24 * 60;
+
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <View style={{ alignItems: 'center', flex: 1 }}>
@@ -156,8 +161,8 @@ function Stat({ value, label }: { value: number; label: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { alignItems: 'center', paddingTop: 32, paddingHorizontal: 20, paddingBottom: 40 },
+  container: { flex: 1, backgroundColor: theme.bg },
+  content: { alignItems: 'center', paddingTop: 32, paddingHorizontal: 20, paddingBottom: TAB_BAR_CLEARANCE },
   avatarWrap: { position: 'relative' },
   uploading: {
     position: 'absolute',
@@ -165,13 +170,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    borderRadius: 52,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 57,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyFriends: { alignSelf: 'flex-start', fontSize: 14, color: theme.muted, lineHeight: 20 },
-  friendRing: { borderRadius: 30, borderWidth: 2, borderColor: theme.primary, padding: 1 },
   cameraBadge: {
     position: 'absolute',
     right: 0,
@@ -179,9 +183,9 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: theme.text,
+    backgroundColor: theme.primary,
     borderWidth: 3,
-    borderColor: '#fff',
+    borderColor: theme.bg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -202,7 +206,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     width: '100%',
     borderRadius: 18,
-    backgroundColor: theme.surface,
+    backgroundColor: theme.card,
   },
   divider: { width: 1, height: 32, backgroundColor: theme.border },
   statValue: { fontSize: 22, fontWeight: '800', color: theme.text },
@@ -241,8 +245,8 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     fontSize: 11,
     fontWeight: '700',
-    color: '#fff',
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    color: theme.text,
+    backgroundColor: 'rgba(0,0,0,0.55)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,

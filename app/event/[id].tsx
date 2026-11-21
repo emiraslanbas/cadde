@@ -210,7 +210,7 @@ function ActionButton(props: {
   onPress: () => void;
   disabled?: boolean;
 }) {
-  const color = props.variant === 'filled' ? '#fff' : props.variant === 'outline' ? theme.primary : theme.muted;
+  const color = props.variant === 'filled' ? theme.onPrimary : props.variant === 'outline' ? theme.primary : theme.muted;
   return (
     <Pressable
       onPress={props.onPress}
@@ -238,9 +238,9 @@ function InfoRow({ icon, text, muted }: { icon: IconName; text: string; muted?: 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: theme.bg },
   center: { alignItems: 'center', justifyContent: 'center' },
-  cover: { width: '100%', height: 220, backgroundColor: theme.border },
+  cover: { width: '100%', height: 240, backgroundColor: theme.card },
   body: { padding: 20 },
   badge: { fontSize: 13, fontWeight: '700', color: theme.muted },
   title: { fontSize: 26, fontWeight: '800', color: theme.text, marginTop: 2, marginBottom: 12 },
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
   requestUsername: { fontSize: 13, color: theme.muted },
   smallButton: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: theme.primary },
   rejectButton: { backgroundColor: theme.surface },
-  smallButtonText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  smallButtonText: { fontSize: 13, fontWeight: '700', color: theme.onPrimary },
   avatars: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   attendee: { alignItems: 'center', width: 58 },
   avatarName: { fontSize: 12, color: theme.muted, marginTop: 4 },
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   buttonFilled: { backgroundColor: theme.primary, borderColor: theme.primary },
-  buttonOutline: { backgroundColor: '#fff', borderColor: theme.primary },
+  buttonOutline: { backgroundColor: 'transparent', borderColor: theme.primary },
   buttonMuted: { backgroundColor: theme.surface, borderColor: theme.border },
   buttonText: { fontSize: 16, fontWeight: '800' },
   hint: { fontSize: 13, color: theme.muted, lineHeight: 19, marginTop: 12, textAlign: 'center' },

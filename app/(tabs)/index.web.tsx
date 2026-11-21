@@ -1,13 +1,12 @@
 // Web önizlemesi için harita ekranı: react-native-maps web'de çalışmadığından
 // haritanın yerine OpenStreetMap görünümü ve hikâye paylaşan kişilerin listesi gösterilir.
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { createElement } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Avatar } from '@/components/Avatar';
-import { theme } from '@/constants/theme';
+import { MapHeader, MapPerson } from '@/components/MapChrome';
+import { TAB_BAR_CLEARANCE, theme } from '@/constants/theme';
 import { useMapUsers, useMyProfile, useRefreshOnFocus } from '@/lib/api';
 import { useMyId } from '@/store/auth';
 
@@ -31,35 +30,19 @@ export default function MapScreenWeb() {
         {createElement('iframe', {
           src: MAP_URL,
           title: 'Harita',
-          style: { border: 0, width: '100%', height: '100%' },
+          // OpenStreetMap'in koyu teması yok; renkleri ters çevirerek gece görünümü
+          style: { border: 0, width: '100%', height: '100%', filter: DARK_FILTER },
         })}
       </View>
 
-      <View style={[styles.header, { top: insets.top + 8 }]}>
-        <Text style={styles.logo}>cadde</Text>
-        <Text style={styles.subtitle}>
-          {others.length > 0
-            ? `${others.length} kişi son 24 saatte hikâye paylaştı`
-            : 'Henüz kimse hikâye paylaşmadı. İlk sen paylaş!'}
-        </Text>
-        {!showOnMap && me && <Text style={styles.hidden}>Konumun gizli · Ayarlar’dan açabilirsin</Text>}
-      </View>
+      <MapHeader top={insets.top + 8} othersCount={others.length} locationHidden={!showOnMap && !!me} />
 
       {others.length > 0 && (
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { bottom: TAB_BAR_CLEARANCE - 24 }]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 14, padding: 14 }}>
             {others.map((user) => (
-              <Pressable key={user.id} onPress={() => router.push(`/story/${user.id}`)} style={styles.marker}>
-                <View style={styles.ring}>
-                  {user.avatar_url ? (
-                    <Image source={user.avatar_url} style={styles.avatar} />
-                  ) : (
-                    <View style={styles.avatarBorder}>
-                      <Avatar uri={null} name={user.name} size={42} />
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.markerName}>{user.name.split(' ')[0]}</Text>
+              <Pressable key={user.id} onPress={() => router.push(`/story/${user.id}`)}>
+                <MapPerson name={user.name} avatarUrl={user.avatar_url} hasStory label={user.name.split(' ')[0]} />
               </Pressable>
             ))}
           </ScrollView>
@@ -69,35 +52,17 @@ export default function MapScreenWeb() {
   );
 }
 
+const DARK_FILTER = 'invert(1) hue-rotate(200deg) brightness(0.75) contrast(0.9) saturate(0.6)';
+
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  logo: { fontSize: 24, fontWeight: '800', color: theme.primary, letterSpacing: -0.5 },
-  subtitle: { fontSize: 13, color: theme.muted, marginTop: 2 },
-  hidden: { fontSize: 12, color: theme.private, marginTop: 4, fontWeight: '600' },
+  container: { flex: 1, backgroundColor: theme.bg },
   sheet: {
     position: 'absolute',
     left: 12,
     right: 12,
-    bottom: 12,
-    backgroundColor: 'rgba(255,255,255,0.95)',
-    borderRadius: 18,
+    backgroundColor: theme.glass,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.glassBorder,
   },
-  marker: { alignItems: 'center' },
-  ring: { padding: 3, borderRadius: 30, backgroundColor: theme.primary },
-  avatarBorder: { borderRadius: 23, borderWidth: 2, borderColor: '#fff' },
-  avatar: { width: 46, height: 46, borderRadius: 23, borderWidth: 2, borderColor: '#fff' },
-  markerName: { marginTop: 4, fontSize: 11, fontWeight: '700', color: theme.text },
 });

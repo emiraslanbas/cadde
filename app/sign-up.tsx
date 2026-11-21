@@ -116,7 +116,7 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: theme.bg },
   content: { padding: 20, gap: 18 },
   hint: { fontSize: 12, color: theme.muted },
   terms: { fontSize: 12, color: theme.muted, lineHeight: 18, textAlign: 'center' },

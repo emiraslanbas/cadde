@@ -1,9 +1,10 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Input, PrimaryButton } from '@/components/Form';
 import { Icon } from '@/components/Icon';
+import { Toggle } from '@/components/Toggle';
 import { theme } from '@/constants/theme';
 import { errorMessage } from '@/lib/format';
 import { useBlockUser, useReport } from '@/lib/safety';
@@ -88,7 +89,7 @@ export default function ReportScreen() {
               style={[styles.row, i < REASONS.length - 1 && styles.rowBorder]}>
               <Text style={styles.label}>{r.label}</Text>
               <View style={[styles.radio, reason === r.key && styles.radioActive]}>
-                {reason === r.key && <Icon name="check" color="#fff" size={12} />}
+                {reason === r.key && <Icon name="check" color={theme.onPrimary} size={12} />}
               </View>
             </Pressable>
           ))}
@@ -106,7 +107,7 @@ export default function ReportScreen() {
         {canBlock && (
           <View style={[styles.card, styles.row]}>
             <Text style={styles.label}>{params.name ? `${params.name} kişisini de engelle` : 'Bu kişiyi de engelle'}</Text>
-            <Switch value={alsoBlock} onValueChange={setAlsoBlock} trackColor={{ true: theme.primary }} />
+            <Toggle value={alsoBlock} onChange={setAlsoBlock} />
           </View>
         )}
 
@@ -117,12 +118,12 @@ export default function ReportScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.surface },
+  container: { flex: 1, backgroundColor: theme.bg },
   center: { alignItems: 'center', justifyContent: 'center' },
   content: { padding: 16, gap: 14, paddingBottom: 40 },
   title: { fontSize: 20, fontWeight: '800', color: theme.text, marginTop: 4 },
   hint: { fontSize: 13, color: theme.muted, lineHeight: 18 },
-  card: { backgroundColor: '#fff', borderRadius: 18, overflow: 'hidden' },
+  card: { backgroundColor: theme.card, borderRadius: 18, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 14 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border },
   label: { flex: 1, fontSize: 15, color: theme.text },
@@ -136,5 +137,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioActive: { backgroundColor: theme.primary, borderColor: theme.primary },
-  details: { minHeight: 90, textAlignVertical: 'top', backgroundColor: '#fff' },
+  details: { minHeight: 90, textAlignVertical: 'top', backgroundColor: theme.card },
 });

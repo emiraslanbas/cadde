@@ -13,14 +13,39 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 }
 
 export function Input(props: TextInputProps) {
-  return <TextInput placeholderTextColor={theme.muted} {...props} style={[styles.input, props.style]} />;
+  return (
+    <TextInput
+      placeholderTextColor={theme.muted}
+      keyboardAppearance="dark"
+      selectionColor={theme.primary}
+      {...props}
+      style={[styles.input, props.style]}
+    />
+  );
 }
 
-export function PrimaryButton(props: { label: string; onPress: () => void; loading?: boolean; disabled?: boolean }) {
+// variant="light": koyu zeminde beyaz, hap şeklinde ana düğme (karşılama ekranı gibi)
+export function PrimaryButton(props: {
+  label: string;
+  onPress: () => void;
+  loading?: boolean;
+  disabled?: boolean;
+  variant?: 'primary' | 'light';
+}) {
   const disabled = props.disabled || props.loading;
+  const light = props.variant === 'light';
+  const textColor = light ? theme.bg : theme.onPrimary;
   return (
-    <Pressable style={[styles.button, disabled && { opacity: 0.6 }]} onPress={props.onPress} disabled={disabled}>
-      {props.loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{props.label}</Text>}
+    <Pressable
+      style={[styles.button, light && styles.buttonLight, disabled && { opacity: 0.6 }]}
+      onPress={props.onPress}
+      disabled={disabled}
+      accessibilityRole="button">
+      {props.loading ? (
+        <ActivityIndicator color={textColor} />
+      ) : (
+        <Text style={[styles.buttonText, { color: textColor }]}>{props.label}</Text>
+      )}
     </Pressable>
   );
 }
@@ -35,9 +60,12 @@ export const USERNAME_HINT = '3-30 karakter; sadece a-z, rakam, nokta ve alt çi
 
 const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '700', color: theme.text },
+  buttonLight: { backgroundColor: theme.text, borderRadius: 28 },
   input: {
     backgroundColor: theme.surface,
-    borderRadius: 12,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.border,
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 16,
@@ -52,5 +80,5 @@ const styles = StyleSheet.create({
     minHeight: 54,
     justifyContent: 'center',
   },
-  buttonText: { color: '#fff', fontSize: 17, fontWeight: '800' },
+  buttonText: { fontSize: 17, fontWeight: '800' },
 });

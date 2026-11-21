@@ -18,6 +18,7 @@ render android-foreground.svg android-icon-foreground.png
 render android-monochrome.svg android-icon-monochrome.png
 render splash-icon.svg splash-icon.png
 render favicon.svg favicon.png
+"$CHROME" --headless --disable-gpu --hide-scrollbars --window-size=1080,1500 --screenshot="$OUT/welcome.png" "file://$PWD/welcome.svg" >/dev/null 2>&1
 sips -z 48 48 "$OUT/favicon.png" >/dev/null
 
 # App Store ikonunda alfa kanalı olmamalı: JPEG'e çevirip geri PNG yaparak düzleştir

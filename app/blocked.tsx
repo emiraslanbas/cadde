@@ -44,9 +44,9 @@ export default function BlockedUsersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.surface },
+  container: { flex: 1, backgroundColor: theme.bg },
   empty: { textAlign: 'center', color: theme.muted, marginTop: 40, fontSize: 15 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 18, backgroundColor: '#fff' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 18, backgroundColor: theme.card },
   name: { fontSize: 15, fontWeight: '700', color: theme.text },
   username: { fontSize: 13, color: theme.muted },
   button: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, backgroundColor: theme.surface },

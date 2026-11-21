@@ -114,6 +114,9 @@ export default function EventChatScreen() {
           value={text}
           onChangeText={setText}
           placeholder="Mesaj yaz…"
+          placeholderTextColor={theme.muted}
+          keyboardAppearance="dark"
+          selectionColor={theme.primary}
           multiline
         />
         <Pressable onPress={send} style={[styles.sendButton, !text.trim() && { opacity: 0.4 }]}>
@@ -150,7 +153,7 @@ function MessageBubble({
           onLongPress={onLongPress}
           delayLongPress={350}
           style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleOther]}>
-          <Text style={[styles.msgText, mine && { color: '#fff' }]}>{message.text}</Text>
+          <Text style={[styles.msgText, mine && { color: theme.onPrimary }]}>{message.text}</Text>
           <Text style={[styles.time, mine && { color: 'rgba(255,255,255,0.75)' }]}>
             {formatTime(message.created_at)}
           </Text>
@@ -167,7 +170,7 @@ function MessageBubble({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.surface },
+  container: { flex: 1, backgroundColor: theme.bg },
   headerTitle: { fontSize: 16, fontWeight: '700', color: theme.text, maxWidth: 220 },
   headerSubtitle: { fontSize: 12, color: theme.muted },
   empty: { textAlign: 'center', color: theme.muted, marginTop: 40 },
@@ -175,7 +178,7 @@ const styles = StyleSheet.create({
   author: { fontSize: 12, fontWeight: '700', color: theme.muted, marginBottom: 3, marginLeft: 4 },
   bubble: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 18 },
   bubbleMine: { backgroundColor: theme.primary, borderBottomRightRadius: 6 },
-  bubbleOther: { backgroundColor: '#fff', borderBottomLeftRadius: 6 },
+  bubbleOther: { backgroundColor: theme.card, borderBottomLeftRadius: 6 },
   msgText: { fontSize: 16, color: theme.text, lineHeight: 21 },
   time: { fontSize: 11, color: theme.muted, marginTop: 3, alignSelf: 'flex-end' },
   composer: {
@@ -184,7 +187,7 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 12,
     paddingTop: 10,
-    backgroundColor: '#fff',
+    backgroundColor: theme.bg,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: theme.border,
   },

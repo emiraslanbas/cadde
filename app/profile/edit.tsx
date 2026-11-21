@@ -86,6 +86,6 @@ function EditForm({ me }: { me: Profile }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 20, gap: 18 },
+  container: { flex: 1, backgroundColor: theme.bg, padding: 20, gap: 18 },
   hint: { fontSize: 12, color: theme.muted },
 });

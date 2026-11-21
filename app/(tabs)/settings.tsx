@@ -9,15 +9,15 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
 import { Icon, IconName } from '@/components/Icon';
+import { Toggle } from '@/components/Toggle';
 import { LINKS } from '@/constants/links';
-import { theme } from '@/constants/theme';
+import { TAB_BAR_CLEARANCE, theme } from '@/constants/theme';
 import { useMyProfile, useUpdateProfile } from '@/lib/api';
 import { errorMessage } from '@/lib/format';
 import { registerForPush, unregisterPushToken } from '@/lib/notifications';
@@ -97,7 +97,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, paddingBottom: TAB_BAR_CLEARANCE }}>
         <Pressable style={styles.profileCard} onPress={() => router.push('/profile/edit')}>
           <Avatar uri={me?.avatar_url} name={me?.name ?? ''} size={52} />
           <View style={{ flex: 1 }}>
@@ -170,7 +170,7 @@ export default function SettingsScreen() {
 
       {deleting && (
         <View style={styles.overlay}>
-          <ActivityIndicator color="#fff" size="large" />
+          <ActivityIndicator color={theme.text} size="large" />
           <Text style={styles.overlayText}>Hesabın siliniyor…</Text>
         </View>
       )}
@@ -218,7 +218,7 @@ function ToggleRow(props: {
 }) {
   return (
     <Row icon={props.icon} label={props.label} last={props.last}>
-      <Switch value={props.value} onValueChange={props.onChange} trackColor={{ true: theme.primary }} />
+      <Toggle value={props.value} onChange={props.onChange} />
     </Row>
   );
 }
@@ -246,14 +246,14 @@ function Segmented({ value, onChange }: { value: Audience; onChange: (v: Audienc
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.surface },
+  container: { flex: 1, backgroundColor: theme.bg },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
     padding: 14,
     borderRadius: 18,
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
   },
   profileName: { fontSize: 17, fontWeight: '800', color: theme.text },
   profileUsername: { fontSize: 13, color: theme.muted, marginTop: 2 },
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   footnote: { fontSize: 12, color: theme.muted, lineHeight: 17, marginTop: 8, marginHorizontal: 6 },
-  card: { backgroundColor: '#fff', borderRadius: 18, overflow: 'hidden' },
+  card: { backgroundColor: theme.card, borderRadius: 18, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12 },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border },
   iconBox: {
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   segment: { flexDirection: 'row', backgroundColor: theme.surface, borderRadius: 10, padding: 2 },
   segmentItem: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
   segmentActive: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.border,
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 3,
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     marginTop: 28,
     paddingVertical: 15,
     borderRadius: 18,
-    backgroundColor: '#fff',
+    backgroundColor: theme.card,
   },
   logoutText: { fontSize: 16, fontWeight: '700', color: theme.danger },
   deleteButton: { alignSelf: 'center', marginTop: 18, padding: 6 },
@@ -313,5 +313,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
   },
-  overlayText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  overlayText: { color: theme.text, fontSize: 16, fontWeight: '700' },
 });

@@ -93,6 +93,7 @@ export default function NewEventScreen() {
             <DateTimePicker
               value={date}
               mode="datetime"
+              themeVariant="dark"
               minimumDate={new Date()}
               locale="tr-TR"
               onChange={(_, v) => v && setDate(v)}
@@ -161,7 +162,7 @@ function VisibilityOption(props: {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: theme.bg },
   label: { fontSize: 14, fontWeight: '700', color: theme.text },
   input: {
     backgroundColor: theme.surface,

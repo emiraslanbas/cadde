@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Icon } from '@/components/Icon';
-import { formatEventDate, theme } from '@/constants/theme';
+import { formatEventDate, TAB_BAR_CLEARANCE, TAB_BAR_HEIGHT, theme } from '@/constants/theme';
 import { useEvents, useRefreshOnFocus } from '@/lib/api';
 import type { CaddeEvent } from '@/lib/types';
 import { useMyId } from '@/store/auth';
@@ -42,7 +42,7 @@ export default function EventsScreen() {
       <FlatList
         data={visible}
         keyExtractor={(e) => e.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100, gap: 16 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: TAB_BAR_CLEARANCE + 64, gap: 16 }}
         renderItem={({ item }) => <EventCard event={item} />}
         refreshing={isRefetching}
         onRefresh={refetch}
@@ -59,7 +59,7 @@ export default function EventsScreen() {
 
       <Link href="/event/new" asChild>
         <Pressable style={styles.fab}>
-          <Icon name="plus" color="#fff" size={18} />
+          <Icon name="plus" color={theme.onPrimary} size={18} />
           <Text style={styles.fabText}>Etkinlik oluştur</Text>
         </Pressable>
       </Link>
@@ -78,7 +78,7 @@ function EventCard({ event }: { event: CaddeEvent }) {
       <Pressable style={styles.card}>
         <Image source={event.cover_url} style={styles.cover} />
         <View style={[styles.badge, { backgroundColor: isPrivate ? theme.private : theme.public }]}>
-          <Icon name={isPrivate ? 'lock' : 'globe'} color="#fff" size={12} />
+          <Icon name={isPrivate ? 'lock' : 'globe'} color={theme.onPrimary} size={12} />
           <Text style={styles.badgeText}>{isPrivate ? 'Özel' : 'Herkese açık'}</Text>
         </View>
         <View style={styles.cardBody}>
@@ -97,23 +97,29 @@ function EventCard({ event }: { event: CaddeEvent }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.surface },
+  container: { flex: 1, backgroundColor: theme.bg },
   filters: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 12 },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
-    borderWidth: 1,
+    backgroundColor: theme.card,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: theme.border,
   },
   chipActive: { backgroundColor: theme.text, borderColor: theme.text },
   chipText: { fontSize: 14, fontWeight: '600', color: theme.text },
-  chipTextActive: { color: '#fff' },
-  card: { backgroundColor: '#fff', borderRadius: 18, overflow: 'hidden' },
-  cover: { width: '100%', height: 150, backgroundColor: theme.border },
+  chipTextActive: { color: theme.bg },
+  card: {
+    backgroundColor: theme.card,
+    borderRadius: 22,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: theme.border,
+  },
+  cover: { width: '100%', height: 170, backgroundColor: theme.surface },
   badge: { flexDirection: 'row', alignItems: 'center', gap: 5, position: 'absolute', top: 12, left: 12, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  badgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  badgeText: { color: theme.onPrimary, fontSize: 12, fontWeight: '700' },
   cardBody: { padding: 14 },
   date: { fontSize: 13, fontWeight: '700', color: theme.primary, textTransform: 'capitalize' },
   title: { fontSize: 18, fontWeight: '800', color: theme.text, marginTop: 4 },
@@ -125,17 +131,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     position: 'absolute',
-    bottom: 20,
+    bottom: TAB_BAR_HEIGHT + 36,
     alignSelf: 'center',
     backgroundColor: theme.primary,
     paddingHorizontal: 22,
     paddingVertical: 14,
     borderRadius: 28,
-    shadowColor: theme.primaryDark,
-    shadowOpacity: 0.35,
+    shadowColor: theme.primary,
+    shadowOpacity: 0.5,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
-  fabText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  fabText: { color: theme.onPrimary, fontWeight: '800', fontSize: 16 },
 });
